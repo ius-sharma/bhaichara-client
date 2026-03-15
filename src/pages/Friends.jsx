@@ -14,6 +14,15 @@ const decodeUserIdFromToken = (token) => {
 const Friends = () => {
   const token = localStorage.getItem("token") || "";
   const currentUserId = useMemo(() => decodeUserIdFromToken(token), [token]);
+  const currentUserRole = useMemo(() => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload?.role || "student";
+    } catch {
+      return "student";
+    }
+  }, [token]);
+  const isAdmin = currentUserRole === "admin";
 
   const [students, setStudents] = useState([]);
   const [myFriends, setMyFriends] = useState([]);
@@ -21,20 +30,6 @@ const Friends = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
-
-  const filteredStudents = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
-
-    if (!query) {
-      return students;
-    }
-
-    return students.filter((student) =>
-      String(student?.name || "")
-        .toLowerCase()
-        .includes(query),
-    );
-  }, [students, searchTerm]);
 
   const friendIdSet = useMemo(
     () => new Set(myFriends.map((friend) => String(friend._id))),
@@ -54,12 +49,7 @@ const Friends = () => {
     }
 
     try {
-      const [usersResponse, friendsResponse] = await Promise.all([
-        apiClient.get(`/users?exclude=${currentUserId}`),
-        apiClient.get(`/friends/list/${currentUserId}`),
-      ]);
-
-      setStudents(usersResponse?.data?.data || []);
+      const friendsResponse = await apiClient.get(`/friends/list/${currentUserId}`);
       setMyFriends(friendsResponse?.data?.data || []);
       setMessage("");
     } catch (error) {
@@ -75,6 +65,91 @@ const Friends = () => {
   useEffect(() => {
     fetchFriendsData();
   }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUserId) {
+      return;
+    }
+
+    const query = searchTerm.trim();
+
+    // Admin can view users without searching.
+    if (isAdmin && query.length === 0) {
+      let isActive = true;
+      setLoading(true);
+
+      apiClient
+        .get("/users")
+        .then((response) => {
+          if (isActive) {
+            setStudents(response?.data?.data || []);
+            setMessage("");
+          }
+        })
+        .catch((error) => {
+          if (isActive) {
+            setStudents([]);
+            setMessage(
+              error?.response?.data?.message ||
+                "Unable to fetch users. Please try again.",
+            );
+          }
+        })
+        .finally(() => {
+          if (isActive) {
+            setLoading(false);
+          }
+        });
+
+      return () => {
+        isActive = false;
+      };
+    }
+
+    // Normal users should not see anyone before searching.
+    if (!isAdmin && query.length < 2) {
+      setStudents([]);
+      setLoading(false);
+      setMessage("");
+      return;
+    }
+
+    // Search for both admin and normal users when query has at least 2 chars.
+    if (query.length >= 2) {
+      let isActive = true;
+      const timeoutId = setTimeout(async () => {
+        setLoading(true);
+        try {
+          const response = await apiClient.get(
+            `/users/search?q=${encodeURIComponent(query)}`,
+          );
+          if (isActive) {
+            setStudents(response?.data?.data || []);
+            setMessage("");
+          }
+        } catch (error) {
+          if (isActive) {
+            setStudents([]);
+            setMessage(
+              error?.response?.data?.message ||
+                "Unable to search users. Please try again.",
+            );
+          }
+        } finally {
+          if (isActive) {
+            setLoading(false);
+          }
+        }
+      }, 250);
+
+      return () => {
+        isActive = false;
+        clearTimeout(timeoutId);
+      };
+    }
+
+    return undefined;
+  }, [currentUserId, isAdmin, searchTerm]);
 
   const handleSendRequest = async (receiverId) => {
     if (!currentUserId) {
@@ -141,18 +216,20 @@ const Friends = () => {
             <p className="friends-subtitle">Loading users...</p>
           ) : null}
 
-          {!loading && students.length === 0 ? (
+          {!loading && !isAdmin && searchTerm.trim().length < 2 ? (
+            <article className="friends-empty-card" aria-live="polite">
+              <p>Start typing to search students.</p>
+            </article>
+          ) : null}
+
+          {!loading && students.length === 0 && (isAdmin || searchTerm.trim().length >= 2) ? (
             <article className="friends-empty-card" aria-live="polite">
               <p>No students found right now.</p>
               <p>Invite your friends to join Bhaichara.</p>
             </article>
           ) : null}
 
-          {!loading && students.length > 0 && filteredStudents.length === 0 ? (
-            <p className="friends-subtitle">No users match your search.</p>
-          ) : null}
-
-          {filteredStudents.map((student, index) => (
+          {students.map((student, index) => (
             <article key={student._id} className="friend-card">
               <img
                 src={`https://i.pravatar.cc/140?img=${(index % 60) + 1}`}
