@@ -213,8 +213,25 @@ Computer Science Student passionate about:
 * Web Development
 * Building impactful products
 
-GitHub
+GitHub:
+
 https://github.com/ius-sharma
+
+LinkedIn: 
+
+https://www.linkedin.com/in/ayush-sharma-833163320/
+
+Instagram:
+
+www.instagram.com/ius.sharma
+
+Leetcode:
+
+https://leetcode.com/u/iussharma/
+
+HackerRank
+
+Soon...
 
 ---
 
