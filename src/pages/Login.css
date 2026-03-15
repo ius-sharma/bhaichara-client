@@ -1,0 +1,173 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(23, 133, 214, 0.18),
+      transparent 36%
+    ),
+    radial-gradient(
+      circle at 90% 92%,
+      rgba(45, 177, 131, 0.18),
+      transparent 34%
+    ),
+    linear-gradient(160deg, #f6fbff 0%, #f5fff9 56%, #fffaf3 100%);
+}
+
+.login-card {
+  width: min(460px, 100%);
+  border-radius: 22px;
+  padding: 30px 24px;
+  border: 1px solid rgba(18, 59, 92, 0.15);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 42px rgba(18, 59, 92, 0.12);
+  backdrop-filter: blur(5px);
+}
+
+.login-badge {
+  margin: 0 0 8px;
+  color: #10708b;
+  font:
+    600 0.85rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.login-title {
+  margin: 0;
+  color: #0f3b5f;
+  font:
+    700 2rem/1.1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.login-subtitle {
+  margin: 10px 0 0;
+  color: #3e5b73;
+  font:
+    500 0.96rem/1.5 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.login-form {
+  margin-top: 24px;
+  display: grid;
+  gap: 10px;
+}
+
+.login-label {
+  color: #163953;
+  font:
+    600 0.9rem/1.2 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.login-input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #b9cedf;
+  padding: 12px 13px;
+  outline: none;
+  color: #15324a;
+  background: #fff;
+  font:
+    500 0.95rem/1.2 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.login-input:focus {
+  border-color: #1974c9;
+  box-shadow: 0 0 0 3px rgba(25, 116, 201, 0.16);
+}
+
+.login-input-error {
+  border-color: #bf3345;
+}
+
+.login-error {
+  margin: -4px 0 2px;
+  color: #af2f40;
+  font:
+    500 0.82rem/1.3 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.login-button {
+  margin-top: 6px;
+  border: none;
+  border-radius: 12px;
+  background: #1365b5;
+  color: #fff;
+  padding: 12px;
+  cursor: pointer;
+  font:
+    700 0.95rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  transition:
+    transform 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.login-button:hover {
+  transform: translateY(-1px);
+  background: #0f57a5;
+}
+
+.login-success {
+  margin: 4px 0 0;
+  color: #0a7f53;
+  font:
+    500 0.84rem/1.4 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.login-footer {
+  margin: 18px 0 0;
+  color: #3b566d;
+  font:
+    500 0.92rem/1.5 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.login-footer a {
+  color: #0f5cae;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 560px) {
+  .login-page {
+    padding: 14px;
+  }
+
+  .login-card {
+    padding: 24px 16px;
+    border-radius: 16px;
+  }
+
+  .login-title {
+    font-size: 1.75rem;
+  }
+}
