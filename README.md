@@ -1,4 +1,4 @@
-# 🤝 Bhaichara – AI Student Support Platform
+# 🤝 Bhaichara – AI Student Support Platform [ Paused - in development ]
 
 ![React](https://img.shields.io/badge/Frontend-React-blue)
 ![Node](https://img.shields.io/badge/Backend-Node.js-green)
@@ -19,7 +19,7 @@ The goal of Bhaichara is simple:
 # 🌐 Live Demo
 
 Frontend
-https://ius-sharma.github.io/bhaichara-client/
+https://ius-sharma.github.io/bhaichara-client/    [ Paused - in development ]
 
 Backend API
 https://bhaichara-api.onrender.com
