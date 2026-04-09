@@ -23,7 +23,11 @@ const Navbar = () => {
   const { user, logout } = authContext;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isAuthenticated = Boolean(user);
-  const navLinks = isAuthenticated ? authenticatedNavLinks : guestNavLinks;
+  const navLinks = isAuthenticated
+    ? user?.role === "admin"
+      ? [{ to: "/admin", label: "Admin" }, ...authenticatedNavLinks]
+      : authenticatedNavLinks
+    : guestNavLinks;
 
   const closeMenu = () => setIsMenuOpen(false);
 

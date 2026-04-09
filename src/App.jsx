@@ -6,6 +6,7 @@ import Chatbot from "./pages/Chatbot";
 import Friends from "./pages/Friends";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -40,7 +41,15 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]} redirectTo="/admin/login">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Layout>
   );
