@@ -1,4 +1,4 @@
-# 🤝 Bhaichara – AI Student Support Platform [ Paused - in development ]
+# 🤝 Bhaichara – AI Student Support Platform [Live]
 
 ![React](https://img.shields.io/badge/Frontend-React-blue)
 ![Node](https://img.shields.io/badge/Backend-Node.js-green)
