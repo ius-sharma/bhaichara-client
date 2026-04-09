@@ -18,10 +18,10 @@ The goal of Bhaichara is simple:
 
 # 🌐 Live Demo
 
-Frontend
-https://ius-sharma.github.io/bhaichara-client/    [ Paused - in development ]
+Frontend ---> 
+https://bhaichara-client.vercel.app/
 
-Backend API
+Backend API ---> 
 https://bhaichara-api.onrender.com
 
 ---
