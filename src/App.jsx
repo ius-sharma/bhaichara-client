@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Chatbot from "./pages/Chatbot";
 import Friends from "./pages/Friends";
+import FriendChat from "./pages/FriendChat";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
@@ -30,6 +31,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Friends />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/friends/chat/:friendId"
+          element={
+            <ProtectedRoute>
+              <FriendChat />
             </ProtectedRoute>
           }
         />

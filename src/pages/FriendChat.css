@@ -1,0 +1,246 @@
+.friend-chat-page {
+  min-height: 100vh;
+  padding: 26px;
+  background:
+    radial-gradient(
+      circle at 8% 14%,
+      rgba(52, 143, 205, 0.15),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 92% 90%,
+      rgba(46, 171, 139, 0.16),
+      transparent 30%
+    ),
+    linear-gradient(162deg, #f5fbff 0%, #f5fff8 56%, #fffbf4 100%);
+}
+
+.friend-chat-shell {
+  width: min(900px, 100%);
+  margin: 0 auto;
+}
+
+.friend-chat-topbar {
+  display: grid;
+  gap: 12px;
+}
+
+.friend-chat-back-btn {
+  width: fit-content;
+  border: 1px solid #bfd2e2;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #154a73;
+  font:
+    700 0.86rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.friend-chat-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.friend-chat-user-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #d6e8f7;
+}
+
+.friend-chat-user h1 {
+  margin: 0;
+  color: #123f67;
+  font:
+    700 1.3rem/1.2 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.friend-chat-user p {
+  margin: 4px 0 0;
+  color: #406078;
+  font:
+    500 0.9rem/1.5 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.friend-chat-window {
+  margin-top: 14px;
+  min-height: 300px;
+  max-height: 420px;
+  overflow-y: auto;
+  border: 1px solid rgba(19, 64, 101, 0.15);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 14px 24px rgba(19, 64, 101, 0.08),
+    0 4px 10px rgba(19, 64, 101, 0.05);
+  padding: 14px;
+}
+
+.friend-chat-note {
+  margin: 0;
+  color: #36556f;
+  font:
+    500 0.95rem/1.6 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.friend-chat-refreshing {
+  color: #2f6f9e;
+}
+
+.friend-chat-row {
+  display: flex;
+  margin-top: 10px;
+}
+
+.friend-chat-row-own {
+  justify-content: flex-end;
+}
+
+.friend-chat-row-peer {
+  justify-content: flex-start;
+}
+
+.friend-chat-bubble {
+  max-width: min(72%, 520px);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.friend-chat-bubble p {
+  margin: 0;
+  font:
+    500 0.92rem/1.5 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.friend-chat-bubble-own {
+  background: #1365b5;
+  color: #ffffff;
+}
+
+.friend-chat-bubble-peer {
+  background: #ffffff;
+  color: #154a73;
+  border: 1px solid #d2e3ef;
+}
+
+.friend-chat-bubble-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  color: #154a73;
+  border: 1px solid #d2e3ef;
+}
+
+.friend-chat-typing-label {
+  font:
+    500 0.86rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.friend-chat-typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.friend-chat-typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2f6f9e;
+  animation: friendChatTyping 1.15s infinite ease-in-out;
+}
+
+.friend-chat-typing-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.friend-chat-typing-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes friendChatTyping {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.friend-chat-input {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.friend-chat-input input {
+  border: 1px solid #c7dcec;
+  border-radius: 999px;
+  padding: 11px 14px;
+  color: #1f4969;
+  background: #ffffff;
+  font:
+    500 0.94rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  outline: none;
+}
+
+.friend-chat-input input:focus {
+  border-color: #5f9fd2;
+  box-shadow: 0 0 0 4px rgba(95, 159, 210, 0.16);
+}
+
+.friend-chat-input button {
+  border: none;
+  border-radius: 11px;
+  background: #1365b5;
+  color: #ffffff;
+  font:
+    700 0.9rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  padding: 10px 13px;
+  cursor: pointer;
+}
+
+.friend-chat-input button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .friend-chat-page {
+    padding: 16px;
+  }
+
+  .friend-chat-input {
+    grid-template-columns: 1fr;
+  }
+
+  .friend-chat-bubble {
+    max-width: 85%;
+  }
+}

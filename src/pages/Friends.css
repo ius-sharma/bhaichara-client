@@ -44,6 +44,10 @@
 
 .friends-search {
   margin-top: 20px;
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  padding: 8px 0;
 }
 
 .friends-search input {
@@ -148,6 +152,100 @@
   margin-top: 34px;
 }
 
+.friend-requests-section {
+  margin-top: 26px;
+}
+
+.friends-section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.friends-section-toggle {
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.friends-section-caret {
+  color: #2f6f9e;
+  font:
+    700 1rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  letter-spacing: 0.02em;
+  transform: rotate(0deg);
+  transition: transform 0.22s ease;
+}
+
+.friends-section-caret.is-open {
+  transform: rotate(90deg);
+}
+
+.friends-collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.28s ease,
+    opacity 0.22s ease;
+}
+
+.friends-collapsible.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.friends-collapsible-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.friends-chip-count {
+  border: 1px solid #bfd2e2;
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #154a73;
+  background: #ffffff;
+  font:
+    700 0.82rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.friend-requests-list {
+  margin-top: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.request-card {
+  border: 1px solid rgba(19, 64, 101, 0.15);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 14px 24px rgba(19, 64, 101, 0.08),
+    0 4px 10px rgba(19, 64, 101, 0.05);
+  padding: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.request-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .my-friends-title {
   margin: 0;
   color: #123f67;
@@ -159,22 +257,23 @@
 
 .my-friends-list {
   margin-top: 16px;
-  display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .my-friend-card {
   border: 1px solid rgba(19, 64, 101, 0.15);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.93);
   box-shadow:
     0 14px 24px rgba(19, 64, 101, 0.08),
     0 4px 10px rgba(19, 64, 101, 0.05);
-  padding: 18px;
-  display: grid;
-  gap: 10px;
-  justify-items: start;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   transition:
     transform 0.16s ease,
     box-shadow 0.16s ease;
@@ -188,20 +287,30 @@
 }
 
 .my-friend-avatar {
-  width: 58px;
-  height: 58px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #d6e8f7;
 }
 
+.my-friend-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .my-friend-name {
-  margin: 2px 0 0;
+  margin: 0;
   color: #123f67;
   font:
-    700 1.1rem/1.2 "Outfit",
+    700 1rem/1.2 "Outfit",
     "Segoe UI",
     sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .my-friend-message-btn {
@@ -224,6 +333,105 @@
 .my-friend-message-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 16px rgba(21, 74, 115, 0.12);
+}
+
+.friend-chat-section {
+  margin-top: 34px;
+}
+
+.friend-chat-window {
+  margin-top: 14px;
+  min-height: 220px;
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid rgba(19, 64, 101, 0.15);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow:
+    0 14px 24px rgba(19, 64, 101, 0.08),
+    0 4px 10px rgba(19, 64, 101, 0.05);
+  padding: 14px;
+}
+
+.friend-chat-row {
+  display: flex;
+  margin-top: 10px;
+}
+
+.friend-chat-row-own {
+  justify-content: flex-end;
+}
+
+.friend-chat-row-peer {
+  justify-content: flex-start;
+}
+
+.friend-chat-bubble {
+  max-width: min(72%, 520px);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.friend-chat-bubble p {
+  margin: 0;
+  font:
+    500 0.92rem/1.5 "Outfit",
+    "Segoe UI",
+    sans-serif;
+}
+
+.friend-chat-bubble-own {
+  background: #1365b5;
+  color: #ffffff;
+}
+
+.friend-chat-bubble-peer {
+  background: #ffffff;
+  color: #154a73;
+  border: 1px solid #d2e3ef;
+}
+
+.friend-chat-input {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.friend-chat-input input {
+  border: 1px solid #c7dcec;
+  border-radius: 999px;
+  padding: 11px 14px;
+  color: #1f4969;
+  background: #ffffff;
+  font:
+    500 0.94rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  outline: none;
+}
+
+.friend-chat-input input:focus {
+  border-color: #5f9fd2;
+  box-shadow: 0 0 0 4px rgba(95, 159, 210, 0.16);
+}
+
+.friend-chat-input button {
+  border: none;
+  border-radius: 11px;
+  background: #1365b5;
+  color: #ffffff;
+  font:
+    700 0.9rem/1 "Outfit",
+    "Segoe UI",
+    sans-serif;
+  padding: 10px 13px;
+  cursor: pointer;
+}
+
+.friend-chat-input button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .friends-empty-card {
@@ -259,7 +467,17 @@
   }
 
   .my-friends-list {
+    gap: 10px;
+  }
+
+  .request-card {
     grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .request-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .friend-card {
@@ -267,11 +485,19 @@
   }
 
   .my-friend-card {
-    padding: 16px;
-    gap: 10px;
+    padding: 11px 12px;
+    gap: 8px;
   }
 
   .my-friend-message-btn {
     padding: 9px 11px;
+  }
+
+  .friend-chat-bubble {
+    max-width: 85%;
+  }
+
+  .friend-chat-input {
+    grid-template-columns: 1fr;
   }
 }

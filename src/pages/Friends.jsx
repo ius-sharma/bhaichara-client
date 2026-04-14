@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiClient } from "../services/api";
 import "./Friends.css";
 
@@ -11,7 +12,16 @@ const decodeUserIdFromToken = (token) => {
   }
 };
 
+const resolveAvatar = (user, index, size) => {
+  if (user?.avatarUrl) {
+    return user.avatarUrl;
+  }
+
+  return `https://i.pravatar.cc/${size}?img=${(index % 60) + 1}`;
+};
+
 const Friends = () => {
+  const navigate = useNavigate();
   const token = localStorage.getItem("token") || "";
   const currentUserId = useMemo(() => decodeUserIdFromToken(token), [token]);
   const currentUserRole = useMemo(() => {
@@ -26,10 +36,21 @@ const Friends = () => {
 
   const [students, setStudents] = useState([]);
   const [myFriends, setMyFriends] = useState([]);
-  const [pendingRequestIds, setPendingRequestIds] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [listLoading, setListLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [actionMessage, setActionMessage] = useState("");
+  const [isIncomingOpen, setIsIncomingOpen] = useState(false);
+  const [isSentOpen, setIsSentOpen] = useState(false);
+  const [isMyFriendsOpen, setIsMyFriendsOpen] = useState(false);
+
+  const sectionStateStorageKey = useMemo(
+    () => `friends:section-state:${currentUserId || "guest"}`,
+    [currentUserId],
+  );
 
   const friendIdSet = useMemo(
     () => new Set(myFriends.map((friend) => String(friend._id))),
@@ -37,20 +58,28 @@ const Friends = () => {
   );
 
   const pendingRequestIdSet = useMemo(
-    () => new Set(pendingRequestIds.map((id) => String(id))),
-    [pendingRequestIds],
+    () => new Set(sentRequests.map((item) => String(item.user?._id || ""))),
+    [sentRequests],
   );
 
-  const fetchFriendsData = async () => {
+  const fetchRelationshipData = async () => {
     if (!currentUserId) {
-      setLoading(false);
+      setListLoading(false);
       setMessage("Please login to manage your friends.");
       return;
     }
 
     try {
-      const friendsResponse = await apiClient.get(`/friends/list/${currentUserId}`);
+      const [friendsResponse, incomingResponse, sentResponse] =
+        await Promise.all([
+          apiClient.get("/friends/list"),
+          apiClient.get("/friends/requests/incoming"),
+          apiClient.get("/friends/requests/sent"),
+        ]);
+
       setMyFriends(friendsResponse?.data?.data || []);
+      setIncomingRequests(incomingResponse?.data?.data || []);
+      setSentRequests(sentResponse?.data?.data || []);
       setMessage("");
     } catch (error) {
       setMessage(
@@ -58,13 +87,53 @@ const Friends = () => {
           "Unable to fetch friends data. Please try again.",
       );
     } finally {
-      setLoading(false);
+      setListLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFriendsData();
+    fetchRelationshipData();
   }, [currentUserId]);
+
+  useEffect(() => {
+    if (!currentUserId) {
+      return;
+    }
+
+    try {
+      const savedState = localStorage.getItem(sectionStateStorageKey);
+      if (!savedState) {
+        return;
+      }
+
+      const parsed = JSON.parse(savedState);
+      setIsIncomingOpen(Boolean(parsed?.incoming));
+      setIsSentOpen(Boolean(parsed?.sent));
+      setIsMyFriendsOpen(Boolean(parsed?.myFriends));
+    } catch {
+      // Ignore invalid persisted state and keep defaults.
+    }
+  }, [currentUserId, sectionStateStorageKey]);
+
+  useEffect(() => {
+    if (!currentUserId) {
+      return;
+    }
+
+    const nextState = {
+      incoming: isIncomingOpen,
+      sent: isSentOpen,
+      myFriends: isMyFriendsOpen,
+    };
+
+    localStorage.setItem(sectionStateStorageKey, JSON.stringify(nextState));
+  }, [
+    currentUserId,
+    sectionStateStorageKey,
+    isIncomingOpen,
+    isSentOpen,
+    isMyFriendsOpen,
+  ]);
 
   useEffect(() => {
     if (!currentUserId) {
@@ -76,7 +145,7 @@ const Friends = () => {
     // Admin can view users without searching.
     if (isAdmin && query.length === 0) {
       let isActive = true;
-      setLoading(true);
+      setSearchLoading(true);
 
       apiClient
         .get("/users")
@@ -97,7 +166,7 @@ const Friends = () => {
         })
         .finally(() => {
           if (isActive) {
-            setLoading(false);
+            setSearchLoading(false);
           }
         });
 
@@ -109,7 +178,7 @@ const Friends = () => {
     // Normal users should not see anyone before searching.
     if (!isAdmin && query.length < 2) {
       setStudents([]);
-      setLoading(false);
+      setSearchLoading(false);
       setMessage("");
       return;
     }
@@ -118,7 +187,7 @@ const Friends = () => {
     if (query.length >= 2) {
       let isActive = true;
       const timeoutId = setTimeout(async () => {
-        setLoading(true);
+        setSearchLoading(true);
         try {
           const response = await apiClient.get(
             `/users/search?q=${encodeURIComponent(query)}`,
@@ -137,7 +206,7 @@ const Friends = () => {
           }
         } finally {
           if (isActive) {
-            setLoading(false);
+            setSearchLoading(false);
           }
         }
       }, 250);
@@ -153,39 +222,62 @@ const Friends = () => {
 
   const handleSendRequest = async (receiverId) => {
     if (!currentUserId) {
-      setMessage("Please login to send friend requests.");
+      setActionMessage("Please login to send friend requests.");
       return;
     }
 
     try {
       const response = await apiClient.post("/friends/add", {
-        sender: currentUserId,
         receiver: receiverId,
       });
 
-      setPendingRequestIds((prev) => {
-        if (prev.includes(receiverId)) {
-          return prev;
-        }
-        return [...prev, receiverId];
-      });
-      setMessage(response?.data?.message || "Friend request sent.");
+      await fetchRelationshipData();
+      setActionMessage(response?.data?.message || "Friend request sent.");
     } catch (error) {
-      if (error?.response?.status === 409) {
-        setPendingRequestIds((prev) => {
-          if (prev.includes(receiverId)) {
-            return prev;
-          }
-          return [...prev, receiverId];
-        });
-      }
-
-      setMessage(
+      setActionMessage(
         error?.response?.data?.message ||
           "Unable to send friend request. Please try again.",
       );
     }
   };
+
+  const handleAcceptRequest = async (requestId) => {
+    try {
+      const response = await apiClient.post("/friends/accept", { requestId });
+      await fetchRelationshipData();
+      setActionMessage(response?.data?.message || "Friend request accepted.");
+    } catch (error) {
+      setActionMessage(
+        error?.response?.data?.message ||
+          "Unable to accept request. Please try again.",
+      );
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    try {
+      const response = await apiClient.post("/friends/reject", { requestId });
+      await fetchRelationshipData();
+      setActionMessage(response?.data?.message || "Friend request removed.");
+    } catch (error) {
+      setActionMessage(
+        error?.response?.data?.message ||
+          "Unable to remove request. Please try again.",
+      );
+    }
+  };
+
+  const handleOpenChat = (friend) => {
+    if (!friend?._id) {
+      return;
+    }
+
+    navigate(`/friends/chat/${friend._id}`, {
+      state: { friend },
+    });
+  };
+
+  const isLoading = listLoading || searchLoading;
 
   return (
     <main className="friends-page">
@@ -200,6 +292,9 @@ const Friends = () => {
         </p>
 
         {message ? <p className="friends-subtitle">{message}</p> : null}
+        {actionMessage ? (
+          <p className="friends-subtitle">{actionMessage}</p>
+        ) : null}
 
         <div className="friends-search">
           <input
@@ -212,17 +307,19 @@ const Friends = () => {
         </div>
 
         <div className="friends-grid">
-          {loading ? (
+          {isLoading ? (
             <p className="friends-subtitle">Loading users...</p>
           ) : null}
 
-          {!loading && !isAdmin && searchTerm.trim().length < 2 ? (
+          {!isLoading && !isAdmin && searchTerm.trim().length < 2 ? (
             <article className="friends-empty-card" aria-live="polite">
               <p>Start typing to search students.</p>
             </article>
           ) : null}
 
-          {!loading && students.length === 0 && (isAdmin || searchTerm.trim().length >= 2) ? (
+          {!isLoading &&
+          students.length === 0 &&
+          (isAdmin || searchTerm.trim().length >= 2) ? (
             <article className="friends-empty-card" aria-live="polite">
               <p>No students found right now.</p>
               <p>Invite your friends to join Bhaichara.</p>
@@ -242,15 +339,22 @@ const Friends = () => {
                 const studentId = String(student._id);
                 const isAdded = friendIdSet.has(studentId);
                 const isPending = pendingRequestIdSet.has(studentId);
+                const isSelf = studentId === currentUserId;
 
                 return (
                   <button
                     type="button"
                     className="friend-add-btn"
                     onClick={() => handleSendRequest(student._id)}
-                    disabled={isAdded || isPending}
+                    disabled={isAdded || isPending || isSelf}
                   >
-                    {isAdded ? "Added" : isPending ? "Pending" : "Add Friend"}
+                    {isSelf
+                      ? "You"
+                      : isAdded
+                        ? "Added"
+                        : isPending
+                          ? "Pending"
+                          : "Add Friend"}
                   </button>
                 );
               })()}
@@ -258,26 +362,191 @@ const Friends = () => {
           ))}
         </div>
 
-        <section className="my-friends-section" aria-label="My friends list">
-          <h2 className="my-friends-title">My Friends</h2>
-          <div className="my-friends-list">
-            {!loading && myFriends.length === 0 ? (
-              <p className="friends-subtitle">No accepted friends yet.</p>
-            ) : null}
+        <section
+          className="friend-requests-section"
+          aria-label="Incoming requests"
+        >
+          <div className="friends-section-header-row">
+            <button
+              type="button"
+              className="friends-section-toggle"
+              onClick={() => setIsIncomingOpen((prev) => !prev)}
+              aria-expanded={isIncomingOpen}
+            >
+              <h2 className="my-friends-title">Incoming Requests</h2>
+              <span
+                className={`friends-section-caret ${
+                  isIncomingOpen ? "is-open" : ""
+                }`}
+                aria-hidden="true"
+              >
+                ▸
+              </span>
+            </button>
+            <span className="friends-chip-count">
+              {incomingRequests.length}
+            </span>
+          </div>
+          <div
+            className={`friends-collapsible ${isIncomingOpen ? "is-open" : ""}`}
+            aria-hidden={!isIncomingOpen}
+          >
+            <div className="friends-collapsible-inner">
+              <div className="friend-requests-list">
+                {!isLoading && incomingRequests.length === 0 ? (
+                  <article className="friends-empty-card" aria-live="polite">
+                    <p>No incoming requests right now.</p>
+                  </article>
+                ) : null}
 
-            {myFriends.map((friend, index) => (
-              <article key={friend._id} className="my-friend-card">
-                <img
-                  src={`https://i.pravatar.cc/120?img=${(index % 60) + 1}`}
-                  alt={`${friend.name} profile avatar`}
-                  className="my-friend-avatar"
-                />
-                <p className="my-friend-name">{friend.name}</p>
-                <button type="button" className="my-friend-message-btn">
-                  Message
-                </button>
-              </article>
-            ))}
+                {incomingRequests.map((item, index) => (
+                  <article key={item.requestId} className="request-card">
+                    <img
+                      src={resolveAvatar(item.user, index, 120)}
+                      alt={`${item.user?.name || "Student"} profile avatar`}
+                      className="my-friend-avatar"
+                    />
+                    <div>
+                      <p className="my-friend-name">
+                        {item.user?.name || "Student"}
+                      </p>
+                      <p className="friend-bio">
+                        {item.user?.bio || "No bio added yet."}
+                      </p>
+                    </div>
+                    <div className="request-actions">
+                      <button
+                        type="button"
+                        className="friend-add-btn"
+                        onClick={() => handleAcceptRequest(item.requestId)}
+                      >
+                        Accept
+                      </button>
+                      <button
+                        type="button"
+                        className="my-friend-message-btn"
+                        onClick={() => handleRejectRequest(item.requestId)}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="friend-requests-section" aria-label="Sent requests">
+          <div className="friends-section-header-row">
+            <button
+              type="button"
+              className="friends-section-toggle"
+              onClick={() => setIsSentOpen((prev) => !prev)}
+              aria-expanded={isSentOpen}
+            >
+              <h2 className="my-friends-title">Sent Requests</h2>
+              <span
+                className={`friends-section-caret ${isSentOpen ? "is-open" : ""}`}
+                aria-hidden="true"
+              >
+                ▸
+              </span>
+            </button>
+            <span className="friends-chip-count">{sentRequests.length}</span>
+          </div>
+          <div
+            className={`friends-collapsible ${isSentOpen ? "is-open" : ""}`}
+            aria-hidden={!isSentOpen}
+          >
+            <div className="friends-collapsible-inner">
+              <div className="friend-requests-list">
+                {!isLoading && sentRequests.length === 0 ? (
+                  <article className="friends-empty-card" aria-live="polite">
+                    <p>No pending sent requests.</p>
+                  </article>
+                ) : null}
+
+                {sentRequests.map((item, index) => (
+                  <article key={item.requestId} className="request-card">
+                    <img
+                      src={resolveAvatar(item.user, index, 120)}
+                      alt={`${item.user?.name || "Student"} profile avatar`}
+                      className="my-friend-avatar"
+                    />
+                    <div>
+                      <p className="my-friend-name">
+                        {item.user?.name || "Student"}
+                      </p>
+                      <p className="friend-bio">Request pending approval</p>
+                    </div>
+                    <div className="request-actions">
+                      <button
+                        type="button"
+                        className="my-friend-message-btn"
+                        onClick={() => handleRejectRequest(item.requestId)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="my-friends-section" aria-label="My friends list">
+          <div className="friends-section-header-row">
+            <button
+              type="button"
+              className="friends-section-toggle"
+              onClick={() => setIsMyFriendsOpen((prev) => !prev)}
+              aria-expanded={isMyFriendsOpen}
+            >
+              <h2 className="my-friends-title">My Friends</h2>
+              <span
+                className={`friends-section-caret ${
+                  isMyFriendsOpen ? "is-open" : ""
+                }`}
+                aria-hidden="true"
+              >
+                ▸
+              </span>
+            </button>
+            <span className="friends-chip-count">{myFriends.length}</span>
+          </div>
+          <div
+            className={`friends-collapsible ${isMyFriendsOpen ? "is-open" : ""}`}
+            aria-hidden={!isMyFriendsOpen}
+          >
+            <div className="friends-collapsible-inner">
+              <div className="my-friends-list">
+                {!isLoading && myFriends.length === 0 ? (
+                  <p className="friends-subtitle">No accepted friends yet.</p>
+                ) : null}
+
+                {myFriends.map((friend, index) => (
+                  <article key={friend._id} className="my-friend-card">
+                    <div className="my-friend-info">
+                      <img
+                        src={resolveAvatar(friend, index, 120)}
+                        alt={`${friend.name} profile avatar`}
+                        className="my-friend-avatar"
+                      />
+                      <p className="my-friend-name">{friend.name}</p>
+                    </div>
+                    <button
+                      type="button"
+                      className="my-friend-message-btn"
+                      onClick={() => handleOpenChat(friend)}
+                    >
+                      Message
+                    </button>
+                  </article>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
       </section>
